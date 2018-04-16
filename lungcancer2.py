@@ -182,8 +182,7 @@ for img_file in file_list:
             mean = np.mean(middle)
             max = np.max(img)
             min = np.min(img)
-            # To improve threshold finding, I'm moving the
-            # underflow and overflow on the pixel spectrum
+            # To improve threshold finding, moving underflow and overflow on the pixel spectrum
             img[img==max]=mean
             img[img==min]=mean
             #
@@ -197,8 +196,8 @@ for img_file in file_list:
             threshold = np.mean(centers)
             thresh_img = np.where(img<threshold,1.0,0.0)  # threshold the image
             #
-            # I found an initial erosion helful for removing graininess from some of the regions
-            # and then large dialation is used to make the lung region
+            # initial erosion for removing graininess from some of the regions
+            # and then large dilation is used to make the lung region
             # engulf the vessels and incursions into the lung cavity by
             # radio opaque tissue
             #
@@ -206,14 +205,12 @@ for img_file in file_list:
             dilation = morphology.dilation(eroded,np.ones([10,10]))
             #
             #  Label each region and obtain the region properties
-            #  The background region is removed by removing regions
-            #  with a bbox that is to large in either dimnsion
+            #  The background region is removed 
             #  Also, the lungs are generally far away from the top
             #  and bottom of the image, so any regions that are too
             #  close to the top and bottom are removed
-            #  This does not produce a perfect segmentation of the lungs
-            #  from the image, but it is surprisingly good considering its
-            #  simplicity.
+            
+            #  (not perfect segmentation of the lungs from the image, but it is surprisingly good considering its simplicity)
             #
             labels = measure.label(dilation)
             label_vals = np.unique(labels)
@@ -241,7 +238,7 @@ for img_file in file_list:
 
 
 #
-#    Here we're applying the masks and cropping and resizing the image
+#    applying the masks and cropping and resizing the image
 #
 
 
@@ -257,7 +254,7 @@ for fname in file_list:
         mask = masks[i]
         node_mask = node_masks[i]
         img = imgs_to_process[i]
-        new_size = [512,512]   # we're scaling back up to the original size of the image
+        new_size = [512,512]   # scaling back up to the original size of the image
         img= mask*img          # apply lung mask
         #
         # renormalizing the masked image (in the mask region)
@@ -300,7 +297,6 @@ for fname in file_list:
             max_col = min_col+height
         #
         # cropping the image down to the bounding box for all regions
-        # (there's probably an skimage command that can do this in one line)
         #
         img = img[min_row:max_row,min_col:max_col]
         mask =  mask[min_row:max_row,min_col:max_col]
@@ -432,18 +428,11 @@ def train_and_predict(use_existing):
     # Saving weights to unet.hdf5 at checkpoints
     model_checkpoint = ModelCheckpoint('unet.hdf5', monitor='loss', save_best_only=True)
     #
-    # Should we load existing weights?
     # Set argument for call to train_and_predict to true at end of script
     if use_existing:
         model.load_weights('./unet.hdf5')
 
     #
-    # The final results for this tutorial were produced using a multi-GPU
-    # machine using TitanX's.
-    # For a home GPU computation benchmark, on my home set up with a GTX970
-    # I was able to run 20 epochs with a training set size of 320 and
-    # batch size of 2 in about an hour. I started getting reseasonable masks
-    # after about 3 hours of training.
     #
     print('-'*30)
     print('Fitting model...')
